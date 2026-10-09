@@ -2,48 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\PurchaseOrderRequest;
+use App\Http\Requests\PurchaseOrderStatusRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\PurchaseOrder;
-use Illuminate\Http\Request;
+use App\Services\ProcurementService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PurchaseOrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(PurchaseOrder::query()->with('supplier', 'items.sparePart'), $request, ['number'], ['status', 'supplier_id'], 'order_date');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(PurchaseOrderRequest $request, ProcurementService $procurement): BusinessResource
     {
-        //
+        return new BusinessResource($procurement->createOrder($request->validated(), $request->user()->id));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(PurchaseOrder $purchaseOrder)
+    public function show(PurchaseOrder $purchaseOrder): BusinessResource
     {
-        //
+        return new BusinessResource($purchaseOrder->load('supplier', 'items.sparePart', 'user'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PurchaseOrder $purchaseOrder)
+    public function update(PurchaseOrderRequest $request, PurchaseOrder $purchaseOrder, ProcurementService $procurement): BusinessResource
     {
-        //
+        return new BusinessResource($procurement->updateOrder($purchaseOrder, $request->validated()));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PurchaseOrder $purchaseOrder)
+    public function status(PurchaseOrderStatusRequest $request, PurchaseOrder $purchaseOrder, ProcurementService $procurement): BusinessResource
     {
-        //
+        return new BusinessResource($procurement->transition($purchaseOrder, $request->validated('status')));
+    }
+
+    public function destroy(PurchaseOrder $purchaseOrder, ProcurementService $procurement): Response
+    {
+        $procurement->deleteOrder($purchaseOrder);
+
+        return response()->noContent();
     }
 }

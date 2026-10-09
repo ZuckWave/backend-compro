@@ -2,48 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuditLogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(AuditLog::query()->with('user'), $request, ['action', 'table_name'], [], 'created_at');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(AuditLog $auditLog): BusinessResource
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(AuditLog $auditLog)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, AuditLog $auditLog)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(AuditLog $auditLog)
-    {
-        //
+        return new BusinessResource($auditLog->load('user'));
     }
 }

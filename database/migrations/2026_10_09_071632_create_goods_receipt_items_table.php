@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('goods_receipt_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('goods_receipt_id')->constrained()->restrictOnDelete();
+            $table->foreignId('purchase_order_item_id')->constrained()->restrictOnDelete();
+            $table->foreignId('spare_part_id')->constrained()->restrictOnDelete();
+            $table->unsignedInteger('quantity');
+            $table->decimal('unit_price', 14, 2);
+            $table->unique(['goods_receipt_id', 'purchase_order_item_id']);
             $table->timestamps();
         });
     }

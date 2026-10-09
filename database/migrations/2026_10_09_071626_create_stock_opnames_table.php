@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('stock_opnames', function (Blueprint $table) {
             $table->id();
+            $table->string('number')->unique();
+            $table->date('opname_date');
+            $table->enum('status', ['completed'])->default('completed');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

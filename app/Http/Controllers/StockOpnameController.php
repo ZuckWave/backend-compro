@@ -2,48 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\StockOpnameRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\StockOpname;
-use Illuminate\Http\Request;
+use App\Services\InventoryService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class StockOpnameController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(StockOpname::query()->with('items.sparePart', 'user'), $request, ['number'], [], 'opname_date');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StockOpnameRequest $request, InventoryService $inventory): BusinessResource
     {
-        //
+        return new BusinessResource($inventory->opname($request->validated(), $request->user()->id));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(StockOpname $stockOpname)
+    public function show(StockOpname $stockOpname): BusinessResource
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, StockOpname $stockOpname)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(StockOpname $stockOpname)
-    {
-        //
+        return new BusinessResource($stockOpname->load('items.sparePart', 'user'));
     }
 }

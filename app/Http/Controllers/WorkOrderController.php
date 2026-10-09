@@ -2,48 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\WorkOrderRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\WorkOrder;
-use Illuminate\Http\Request;
+use App\Services\WorkOrderService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class WorkOrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(WorkOrder::query()->with('vehicle', 'mechanic', 'items.sparePart'), $request, ['number', 'complaint'], ['status'], 'created_at');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(WorkOrderRequest $request, WorkOrderService $workOrders): BusinessResource
     {
-        //
+        return new BusinessResource($workOrders->create($request->validated()));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(WorkOrder $workOrder)
+    public function show(WorkOrder $workOrder): BusinessResource
     {
-        //
+        return new BusinessResource($workOrder->load('vehicle', 'mechanic', 'items.sparePart'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, WorkOrder $workOrder)
+    public function update(WorkOrderRequest $request, WorkOrder $workOrder, WorkOrderService $workOrders): BusinessResource
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(WorkOrder $workOrder)
-    {
-        //
+        return new BusinessResource($workOrders->update($workOrder, $request->validated(), $request->user()->id));
     }
 }

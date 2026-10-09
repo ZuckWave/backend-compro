@@ -2,48 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GoodsReceiptRequest;
+use App\Http\Requests\ListRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\GoodsReceipt;
-use Illuminate\Http\Request;
+use App\Services\ProcurementService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class GoodsReceiptController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(GoodsReceipt::query()->with('purchaseOrder.supplier', 'items.sparePart'), $request, ['number'], [], 'received_date');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(GoodsReceiptRequest $request, ProcurementService $procurement): BusinessResource
     {
-        //
+        return new BusinessResource($procurement->receive($request->validated(), $request->user()->id));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(GoodsReceipt $goodsReceipt)
+    public function show(GoodsReceipt $goodsReceipt): BusinessResource
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, GoodsReceipt $goodsReceipt)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(GoodsReceipt $goodsReceipt)
-    {
-        //
+        return new BusinessResource($goodsReceipt->load('purchaseOrder.supplier', 'items.sparePart', 'user'));
     }
 }

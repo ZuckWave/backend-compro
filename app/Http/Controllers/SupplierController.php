@@ -2,48 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\SupplierRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\Supplier;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(Supplier::query(), $request, ['name', 'phone']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(SupplierRequest $request): BusinessResource
     {
-        //
+        return new BusinessResource(DB::transaction(fn () => Supplier::create($request->validated())));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Supplier $supplier)
+    public function show(Supplier $supplier): BusinessResource
     {
-        //
+        return new BusinessResource($supplier);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Supplier $supplier)
+    public function update(SupplierRequest $request, Supplier $supplier): BusinessResource
     {
-        //
+        DB::transaction(fn () => $supplier->update($request->validated()));
+
+        return new BusinessResource($supplier->refresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Supplier $supplier)
+    public function destroy(Supplier $supplier): Response
     {
-        //
+        DB::transaction(fn () => $supplier->delete());
+
+        return response()->noContent();
     }
 }

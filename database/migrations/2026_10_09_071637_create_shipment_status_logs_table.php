@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('shipment_status_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('shipment_id')->constrained()->restrictOnDelete();
+            $table->enum('status', ['pending', 'shipped', 'delivered', 'cancelled']);
+            $table->text('notes')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
     }

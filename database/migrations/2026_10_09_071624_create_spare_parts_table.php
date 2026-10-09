@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('spare_parts', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique();
+            $table->string('name');
+            $table->foreignId('category_id')->constrained()->restrictOnDelete();
+            $table->string('unit', 50);
+            $table->decimal('purchase_price', 14, 2)->default(0);
+            $table->decimal('selling_price', 14, 2)->default(0);
+            $table->unsignedInteger('stock')->default(0);
+            $table->unsignedInteger('min_stock')->default(0);
             $table->timestamps();
         });
     }

@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
+            $table->string('number')->unique();
+            $table->foreignId('work_order_id')->nullable()->constrained()->restrictOnDelete();
+            $table->string('recipient_name');
+            $table->string('phone', 50)->nullable();
+            $table->text('address');
+            $table->string('courier')->nullable();
+            $table->string('tracking_number')->nullable();
+            $table->enum('status', ['pending', 'shipped', 'delivered', 'cancelled'])->default('pending');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->index(['status', 'created_at']);
         });
     }
 

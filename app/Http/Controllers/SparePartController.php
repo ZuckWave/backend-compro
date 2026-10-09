@@ -2,48 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\SparePartRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\SparePart;
-use Illuminate\Http\Request;
+use App\Services\InventoryService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class SparePartController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        $query = SparePart::query()->with('category');
+        if ($request->boolean('low_stock')) {
+            $query->whereColumn('stock', '<=', 'min_stock');
+        }
+
+        return $this->listing($query, $request, ['code', 'name'], ['category_id']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(SparePartRequest $request, InventoryService $inventory): BusinessResource
     {
-        //
+        return new BusinessResource($inventory->createPart($request->validated(), $request->user()->id));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SparePart $sparePart)
+    public function show(SparePart $sparePart): BusinessResource
     {
-        //
+        return new BusinessResource($sparePart->load('category'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SparePart $sparePart)
+    public function update(SparePartRequest $request, SparePart $sparePart): BusinessResource
     {
-        //
+        DB::transaction(fn () => $sparePart->update($request->validated()));
+
+        return new BusinessResource($sparePart->refresh()->load('category'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SparePart $sparePart)
+    public function destroy(SparePart $sparePart): Response
     {
-        //
+        DB::transaction(fn () => $sparePart->delete());
+
+        return response()->noContent();
     }
 }

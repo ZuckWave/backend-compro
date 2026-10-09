@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
+            $table->string('number')->unique();
+            $table->foreignId('supplier_id')->constrained()->restrictOnDelete();
+            $table->date('order_date');
+            $table->enum('status', ['draft', 'ordered', 'partial', 'received', 'cancelled'])->default('draft');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->index(['status', 'order_date']);
+            $table->index(['supplier_id', 'order_date']);
         });
     }
 

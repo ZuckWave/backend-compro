@@ -2,48 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\VehicleRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\Vehicle;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class VehicleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(Vehicle::query(), $request, ['owner_name', 'plate_number']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(VehicleRequest $request): BusinessResource
     {
-        //
+        return new BusinessResource(DB::transaction(fn () => Vehicle::create($request->validated())));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Vehicle $vehicle)
+    public function show(Vehicle $vehicle): BusinessResource
     {
-        //
+        return new BusinessResource($vehicle);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Vehicle $vehicle)
+    public function update(VehicleRequest $request, Vehicle $vehicle): BusinessResource
     {
-        //
+        DB::transaction(fn () => $vehicle->update($request->validated()));
+
+        return new BusinessResource($vehicle->refresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Vehicle $vehicle)
+    public function destroy(Vehicle $vehicle): Response
     {
-        //
+        DB::transaction(fn () => $vehicle->delete());
+
+        return response()->noContent();
     }
 }

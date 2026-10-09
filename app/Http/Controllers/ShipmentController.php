@@ -2,48 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
+use App\Http\Requests\ShipmentRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\Shipment;
-use Illuminate\Http\Request;
+use App\Services\ShipmentService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ShipmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(Shipment::query()->with('statusLogs.user', 'workOrder'), $request, ['number', 'recipient_name', 'tracking_number'], ['status'], 'created_at');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(ShipmentRequest $request, ShipmentService $shipments): BusinessResource
     {
-        //
+        return new BusinessResource($shipments->create($request->validated(), $request->user()->id));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Shipment $shipment)
+    public function show(Shipment $shipment): BusinessResource
     {
-        //
+        return new BusinessResource($shipment->load('statusLogs.user', 'workOrder'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Shipment $shipment)
+    public function update(ShipmentRequest $request, Shipment $shipment, ShipmentService $shipments): BusinessResource
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Shipment $shipment)
-    {
-        //
+        return new BusinessResource($shipments->update($shipment, $request->validated()));
     }
 }

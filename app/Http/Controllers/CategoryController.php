@@ -2,48 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\ListRequest;
+use App\Http\Resources\BusinessResource;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(ListRequest $request): AnonymousResourceCollection
     {
-        //
+        return $this->listing(Category::query(), $request, ['name']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(CategoryRequest $request): BusinessResource
     {
-        //
+        return new BusinessResource(DB::transaction(fn () => Category::create($request->validated())));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Category $category)
+    public function show(Category $category): BusinessResource
     {
-        //
+        return new BusinessResource($category);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Category $category)
+    public function update(CategoryRequest $request, Category $category): BusinessResource
     {
-        //
+        DB::transaction(fn () => $category->update($request->validated()));
+
+        return new BusinessResource($category->refresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Category $category)
+    public function destroy(Category $category): Response
     {
-        //
+        DB::transaction(fn () => $category->delete());
+
+        return response()->noContent();
     }
 }

@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('goods_receipts', function (Blueprint $table) {
             $table->id();
+            $table->string('number')->unique();
+            $table->foreignId('purchase_order_id')->constrained()->restrictOnDelete();
+            $table->date('received_date');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->index(['purchase_order_id', 'received_date']);
         });
     }
 
