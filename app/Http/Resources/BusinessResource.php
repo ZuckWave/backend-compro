@@ -31,7 +31,7 @@ class BusinessResource extends JsonResource
     {
         $fields = match ($this->resource::class) {
             Category::class => ['id', 'name', 'description', 'created_at', 'updated_at'],
-            SparePart::class => ['id', 'code', 'name', 'category_id', 'unit', 'purchase_price', 'selling_price', 'stock', 'min_stock', 'created_at', 'updated_at'],
+            SparePart::class => ['id', 'code', 'name', 'category_id', 'supplier_id', 'unit', 'purchase_price', 'selling_price', 'stock', 'min_stock', 'created_at', 'updated_at'],
             StockMovement::class => ['id', 'spare_part_id', 'type', 'quantity', 'stock_before', 'stock_after', 'reference_type', 'reference_id', 'user_id', 'notes', 'created_at', 'updated_at'],
             StockOpname::class => ['id', 'number', 'opname_date', 'status', 'user_id', 'notes', 'created_at', 'updated_at'],
             StockOpnameItem::class => ['id', 'stock_opname_id', 'spare_part_id', 'system_stock', 'physical_stock', 'difference', 'notes', 'created_at', 'updated_at'],
