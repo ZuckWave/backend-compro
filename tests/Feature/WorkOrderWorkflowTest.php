@@ -124,6 +124,71 @@ class WorkOrderWorkflowTest extends TestCase
         $this->assertDatabaseHas('spare_parts', ['id' => $part->id, 'stock' => 4]);
     }
 
+    public function test_mechanic_can_only_view_and_update_assigned_work_orders(): void
+    {
+        $assignedMechanic = User::factory()->create();
+        $otherMechanic = User::factory()->create();
+        $this->actingAs($assignedMechanic, 'sanctum');
+        $assignedOrder = $this->order($assignedMechanic);
+        $this->actingAs($otherMechanic, 'sanctum');
+        $otherOrder = $this->order($otherMechanic);
+        $this->actingAs($assignedMechanic, 'sanctum');
+
+        $this->getJson('/api/work-orders')->assertOk()->assertJsonFragment(['number' => $assignedOrder['number']])->assertJsonMissing(['number' => $otherOrder['number']]);
+        $this->getJson('/api/work-orders/'.$otherOrder['id'])->assertNotFound();
+        $this->patchJson('/api/work-orders/'.$otherOrder['id'], ['status' => 'cancelled'])->assertNotFound();
+
+        $this->assertDatabaseHas('work_orders', ['id' => $otherOrder['id'], 'status' => 'open']);
+    }
+
+    public function test_mechanic_cannot_access_items_or_usage_for_another_mechanics_work_order(): void
+    {
+        $assignedMechanic = User::factory()->create();
+        $otherMechanic = User::factory()->create();
+        $part = SparePart::factory()->create(['stock' => 5]);
+        $this->actingAs($otherMechanic, 'sanctum');
+        $otherOrder = $this->order($otherMechanic);
+        $item = $this->postJson('/api/work-orders/'.$otherOrder['id'].'/items', ['spare_part_id' => $part->id, 'quantity' => 2])
+            ->assertCreated()->json('data');
+
+        $this->actingAs($assignedMechanic, 'sanctum');
+        $this->getJson('/api/work-orders/'.$otherOrder['id'].'/items')->assertNotFound();
+        $this->getJson('/api/work-orders/'.$otherOrder['id'].'/items/'.$item['id'])->assertNotFound();
+        $this->patchJson('/api/work-orders/'.$otherOrder['id'].'/items/'.$item['id'], ['quantity' => 1])->assertNotFound();
+        $this->deleteJson('/api/work-orders/'.$otherOrder['id'].'/items/'.$item['id'])->assertNotFound();
+        $this->getJson('/api/spare-part-usage')->assertOk()->assertJsonMissing(['work_order_id' => $otherOrder['id']]);
+
+        $this->assertDatabaseHas('work_order_items', ['id' => $item['id'], 'quantity' => 2]);
+        $this->assertDatabaseHas('spare_parts', ['id' => $part->id, 'stock' => 3]);
+    }
+
+    public function test_mechanic_cannot_assign_a_work_order_to_another_mechanic(): void
+    {
+        $mechanic = User::factory()->create();
+        $otherMechanic = User::factory()->create();
+        $vehicle = Vehicle::create(['owner_name' => 'Pelanggan', 'plate_number' => 'B7821KKM', 'brand' => 'Honda', 'type' => 'BeAT']);
+        $this->actingAs($mechanic, 'sanctum');
+
+        $this->postJson('/api/work-orders', [
+            'vehicle_id' => $vehicle->id,
+            'mechanic_id' => $otherMechanic->id,
+            'complaint' => 'Servis CVT',
+        ])->assertUnprocessable()->assertJsonValidationErrors('mechanic_id');
+
+        $this->assertDatabaseCount('work_orders', 0);
+    }
+
+    public function test_owner_can_view_work_orders_assigned_to_any_mechanic(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $mechanic = User::factory()->create();
+        $this->actingAs($owner, 'sanctum');
+        $order = $this->order($mechanic);
+
+        $this->getJson('/api/work-orders')->assertOk()->assertJsonFragment(['number' => $order['number']]);
+        $this->getJson('/api/work-orders/'.$order['id'])->assertOk();
+    }
+
     public function test_owner_cannot_be_assigned_as_mechanic(): void
     {
         $owner = User::factory()->owner()->create();

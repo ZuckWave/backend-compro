@@ -1,0 +1,75 @@
+{
+	"info": {
+		"_postman_id": "8f968b8e-0a12-4ddd-9781-2026f06b44ab",
+		"name": "KEN KEN Motor API",
+		"description": "Skenario smoke test API backend: autentikasi owner/mekanik, dashboard, inventory, procurement, work order, laporan, dan audit log.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login Owner",
+					"event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Owner login berhasil', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.environment.set('token', body.token);"] } }],
+					"request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\",\n  \"device_name\": \"Postman KEN KEN\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] } }
+				},
+				{
+					"name": "Profil pengguna aktif",
+					"request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/user", "host": ["{{base_url}}"], "path": ["user"] } }
+				},
+				{
+					"name": "Login Mekanik (ubah token untuk role mekanik)",
+					"event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login mekanik berhasil', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.environment.set('token', body.token);"] } }],
+					"request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{mekanik_email}}\",\n  \"password\": \"{{mekanik_password}}\",\n  \"device_name\": \"Postman KEN KEN Mekanik\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] } }
+				}
+			]
+		},
+		{
+			"name": "Dashboard & Inventory",
+			"item": [
+				{ "name": "Dashboard", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/dashboard", "host": ["{{base_url}}"], "path": ["dashboard"] } } },
+				{ "name": "Daftar spare part", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Daftar spare part tersedia', () => pm.response.to.have.status(200));", "const rows = pm.response.json().data;", "const roller = rows.find((row) => row.code === 'CVT-RLR-10G');", "if (roller) pm.environment.set('spare_part_id', roller.id);"] } }], "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/spare-parts?per_page=100", "host": ["{{base_url}}"], "path": ["spare-parts"], "query": [{ "key": "per_page", "value": "100" }] } } },
+				{ "name": "Daftar kategori", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] } } },
+				{ "name": "Stok masuk", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/stock-in", "host": ["{{base_url}}"], "path": ["stock-in"] } } },
+				{ "name": "Stok keluar", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/stock-out", "host": ["{{base_url}}"], "path": ["stock-out"] } } },
+				{ "name": "Stock opname", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/stock-opnames", "host": ["{{base_url}}"], "path": ["stock-opnames"] } } },
+				{ "name": "Stok minimum", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/minimum-stock", "host": ["{{base_url}}"], "path": ["minimum-stock"] } } }
+			]
+		},
+		{
+			"name": "Procurement",
+			"item": [
+				{ "name": "Daftar supplier", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/suppliers", "host": ["{{base_url}}"], "path": ["suppliers"] } } },
+				{ "name": "Daftar purchase order", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/purchase-orders", "host": ["{{base_url}}"], "path": ["purchase-orders"] } } },
+				{ "name": "Daftar penerimaan barang", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/goods-receipts", "host": ["{{base_url}}"], "path": ["goods-receipts"] } } }
+			]
+		},
+		{
+			"name": "Bengkel & Pengiriman",
+			"item": [
+				{ "name": "Daftar kendaraan", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Kendaraan tersedia', () => pm.response.to.have.status(200));", "const rows = pm.response.json().data;", "if (rows[0]) pm.environment.set('vehicle_id', rows[0].id);"] } }], "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/vehicles", "host": ["{{base_url}}"], "path": ["vehicles"] } } },
+				{ "name": "Daftar work order", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Work order tersedia', () => pm.response.to.have.status(200));", "const rows = pm.response.json().data;", "const demo = rows.find((row) => row.number === 'WO-KKM-2026-001');", "if (demo) pm.environment.set('work_order_id', demo.id);"] } }], "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/work-orders", "host": ["{{base_url}}"], "path": ["work-orders"] } } },
+				{ "name": "Detail work order demo", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/work-orders/{{work_order_id}}", "host": ["{{base_url}}"], "path": ["work-orders", "{{work_order_id}}"] } } },
+				{ "name": "Pesanan kirim", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/shipments", "host": ["{{base_url}}"], "path": ["shipments"] } } },
+				{ "name": "Status pengiriman demo", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/shipments/1/statuses", "host": ["{{base_url}}"], "path": ["shipments", "1", "statuses"] } }
+				}
+			]
+		},
+		{
+			"name": "Laporan & Audit",
+			"item": [
+				{ "name": "Laporan stok", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/reports/stock", "host": ["{{base_url}}"], "path": ["reports", "stock"] } } },
+				{ "name": "Laporan pembelian", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/reports/purchases", "host": ["{{base_url}}"], "path": ["reports", "purchases"] } } },
+				{ "name": "Laporan penggunaan spare part", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/reports/spare-part-usage", "host": ["{{base_url}}"], "path": ["reports", "spare-part-usage"] } } },
+				{ "name": "Laporan supplier", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/reports/suppliers", "host": ["{{base_url}}"], "path": ["reports", "suppliers"] } } },
+				{ "name": "Daftar user & role", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/users", "host": ["{{base_url}}"], "path": ["users"] } } },
+				{ "name": "Audit log", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/audit-logs", "host": ["{{base_url}}"], "path": ["audit-logs"] } } }
+			]
+		}
+	]
+}

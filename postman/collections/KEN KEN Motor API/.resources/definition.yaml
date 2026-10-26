@@ -1,0 +1,8 @@
+$kind: collection
+description: "Skenario smoke test API backend: autentikasi owner/mekanik, dashboard, inventory, procurement, work order, laporan, dan audit log."
+auth:
+  - id: 6a249fb8-8d66-4147-9221-e8206c50d5df
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{token}}"

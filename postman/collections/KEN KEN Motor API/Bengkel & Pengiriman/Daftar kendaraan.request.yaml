@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/vehicles"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Kendaraan tersedia', () => pm.response.to.have.status(200));
+      const rows = pm.response.json().data;
+      if (rows[0]) pm.environment.set('vehicle_id', rows[0].id);
+    language: text/javascript
+order: 1000

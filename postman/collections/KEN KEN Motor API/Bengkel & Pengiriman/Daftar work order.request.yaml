@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/work-orders"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Work order tersedia', () => pm.response.to.have.status(200));
+      const rows = pm.response.json().data;
+      const demo = rows.find((row) => row.number === 'WO-KKM-2026-001');
+      if (demo) pm.environment.set('work_order_id', demo.id);
+    language: text/javascript
+order: 2000

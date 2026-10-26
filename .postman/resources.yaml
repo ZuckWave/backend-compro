@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 9a32785b-e86c-4308-89c1-fd0ec364658b
+
+cloudResources:
+  collections:
+    ../postman/collections/KEN KEN Motor API: 751cde6f-9e70-4dee-b09f-f0d15f2abd0e
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

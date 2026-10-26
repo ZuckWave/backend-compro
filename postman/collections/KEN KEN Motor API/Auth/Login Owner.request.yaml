@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{base_url}}/login"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{owner_email}}",
+      "password": "{{owner_password}}",
+      "device_name": "Postman KEN KEN"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Owner login berhasil', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.environment.set('token', body.token);
+    language: text/javascript
+order: 1000

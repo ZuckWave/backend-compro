@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/stock-in"
+method: GET
+headers:
+  Accept: application/json
+order: 4000

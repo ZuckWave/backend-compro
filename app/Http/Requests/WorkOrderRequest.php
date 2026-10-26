@@ -28,7 +28,12 @@ class WorkOrderRequest extends FormRequest
         return [
             'number' => [$this->isMethod('POST') ? 'nullable' : 'prohibited', 'string', 'max:100', 'unique:work_orders,number'],
             'vehicle_id' => [$required, 'integer', 'exists:vehicles,id'],
-            'mechanic_id' => [$required, 'integer', Rule::exists('users', 'id')->where('role', 'mekanik')],
+            'mechanic_id' => [
+                $required,
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'mekanik'),
+                ...($this->user()?->role === 'mekanik' ? [Rule::in([$this->user()->id])] : []),
+            ],
             'complaint' => [$required, 'string', 'max:5000'],
             'status' => ['sometimes', Rule::in($this->isMethod('POST') ? ['open', 'in_progress'] : ['open', 'in_progress', 'completed', 'cancelled'])],
             'service_fee' => ['sometimes', 'numeric', 'min:0', 'max:999999999999.99', 'decimal:0,2'],

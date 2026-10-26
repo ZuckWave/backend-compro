@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/reports/purchases"
+method: GET
+headers:
+  Accept: application/json
+order: 2000
