@@ -38,16 +38,14 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /var/www/html
 
-# Copy Composer files
-COPY composer.json composer.lock ./
+# Copy entire Laravel application BEFORE Composer install
+COPY . .
 
 # Install Laravel dependencies
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-# Copy application files
-COPY . .
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
